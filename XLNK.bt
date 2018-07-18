@@ -1,0 +1,35 @@
+//------------------------------------------------
+//--- 010 Editor v8.0 Binary Template
+//
+//      File: XLNK.bt
+//   Authors: Mystixor
+//   Version: 0.0.1
+//  Category: Wii U
+// File Mask: *.belnk
+//  ID Bytes: 58 4C 4E 4B // XLNK
+//------------------------------------------------
+
+// ==== Forward Declarations ===========================================================================================
+
+// ---- Common ----
+
+struct Header;
+struct HashArray; struct OffsetArray; struct SomeStruct2;
+
+enum DictType
+{
+	DT_NONE,
+    DT_STRING,
+};
+
+// ---- Section Specific ----
+
+// ==== Includes =======================================================================================================
+
+#include "math.bt"
+#include "XLNK_common.bt"
+
+// ==== File Contents ==================================================================================================
+
+BigEndian();
+Header file <open=true>;

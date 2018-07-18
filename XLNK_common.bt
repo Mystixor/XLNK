@@ -1,0 +1,209 @@
+// ==== Structures =====================================================================================================
+
+typedef struct // Header
+{
+	char signature[4]; // XLNK
+    uint fileSize;
+	uint unknown;
+	uint unknown;
+	uint unknown;
+	uint unknown;
+	uint Offset;
+	uint Offset;
+	uint unknown;
+	uint unknown;
+	uint unknown;
+	uint unknown;
+	uint unknown;
+	uint unknown;
+	uint Offset;
+	uint hashCount;
+	uint SomeStructOffset;
+	uint StringArrayOffset;
+	
+    if(hashCount)
+    {
+        HashArray hashArray;
+        OffsetArray offsetArray;
+    }
+
+    SomeStruct2 someStruct2 <comment="Almost doesn't work at all!">;
+
+    uint unknown;
+
+    if(SomeStructOffset)
+    {
+        FSeek(SomeStructOffset);
+    }
+
+    if(StringArrayOffset)
+    {
+        FSeek(StringArrayOffset);
+        struct
+        {
+            local uint j = 0;
+            for(j = 0; j < 8014; j++)
+            {
+                struct
+                {
+                    string test;
+                }strings;
+            }
+        }StringArray;
+    }
+
+} Header <bgcolor=0xCDFFFF>;
+
+// ---- Structs ----
+
+typedef struct
+{
+    local uint i = 0;
+    for(i = 0; i < hashCount; i++)
+    {
+        uint hash;
+    }
+} HashArray;
+
+typedef struct
+{
+    local uint i = 0;
+    for(i = 0; i < hashCount; i++)
+    {
+        uint Offset;
+    }
+} OffsetArray;
+
+typedef struct
+    {
+        uint Count;
+        uint unknown;
+        uint unknown;
+        uint unknown;
+        uint unknown;
+        local uint k = 0;
+        for(k = 0; k < 64; k++)
+        {
+            struct
+            {
+                uint unknown;
+                uint unknown;
+                float unknown;
+            }test2;
+        }
+        FSeek(FTell()+1);
+        local uint l = 0;
+        for(l = 0; l < 50; l++)
+        {
+            struct
+            {
+                string test;
+            }strings2;
+        }
+        FAlign(8);
+    }SomeStruct2;
+
+// ---- Offsets ----
+
+typedef struct // Offset
+{
+	local uint origin <format=hex> = FTell();
+	int value;
+	if (value)
+	{
+		local uint target <format=hex> = origin + value;
+	}
+} Offset <read=OffsetRead>;
+
+typedef struct // NameOffset
+{
+	local uint origin  = FTell(); 
+	uint64 value;
+	if (value)
+	{
+		FSeek(value);
+		ushort nameLength;
+		string name <fgcolor=0x55DDAA>;
+		FAlign(4);
+		FSeek(origin + sizeof(uint64));  //Loop back after getting name offset
+	}
+} NameOffset <read=NameOffsetRead>;
+
+typedef struct // NameOffset32
+{
+	local uint origin <format=hex> = FTell();
+	int value;
+	if (value)
+	{
+		FSeek(value - 2);
+		ushort nameLength;
+		string name;
+		FAlign(4);
+		FSeek(origin + sizeof(uint));
+	}
+} NameOffset32 <read=NameOffset32Read>;
+
+// ==== Template Methods ===============================================================================================
+
+string boolean(uint &bool)
+{
+    string s;
+    if(bool != 0)   {SPrintf(s, "%d = \"true\"", bool);}
+    else            {SPrintf(s, "%d = \"false\"", bool);}
+    return s;
+}
+
+string NameOffsetRead(NameOffset &nameOffset)
+{
+	string s;
+	if (nameOffset.value)
+	{
+		SPrintf(s, "%d -> %Xh = \"%s\"", nameOffset.value, nameOffset.value, nameOffset.name);
+	}
+	else
+	{
+		SPrintf(s, "%d -> N/A", nameOffset.value);
+	}
+	return s;
+}
+
+string NameOffset32Read(NameOffset32 &nameOffset)
+{
+	string s;
+	if (nameOffset.value)
+	{
+		SPrintf(s, "%d -> %Xh = \"%s\"", nameOffset.value, nameOffset.value, nameOffset.name);
+	}
+	else
+	{
+		SPrintf(s, "%d -> N/A", nameOffset.value);
+	}
+	return s;
+}
+
+string OffsetRead(Offset &offset)
+{
+	string s;
+	if (offset.value)
+	{
+		SPrintf(s, "%d -> %Xh", offset.value, offset.target);
+	}
+	else
+	{
+		SPrintf(s, "%d -> N/A", offset.value);
+	}
+	return s;
+}
+
+string VersionRead(uint version)
+{
+	string s;
+	SPrintf(s, "%Xh (%u.%u)", version,
+		/*version >> 24,
+		version >> 16 & 0xFF,*/     // only for 4 byte versions
+		version >> 8 & 0xFF,
+		version & 0xFF);
+	return s;
+}
+
+
